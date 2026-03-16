@@ -1,0 +1,20 @@
+# Keep Docker build context small — only what the Dockerfile needs
+# (docker/ directory itself, primarily)
+
+# Never include these in the Docker build context
+.venv/
+CPTFiles/
+dist/
+.git/
+*.pyc
+*.pyo
+*.bak
+__pycache__/
+*.egg-info/
+tests/
+.env
+*.tar.gz
+
+# The Nuitka zip is copied in temporarily by build-linux.sh
+# and cleaned up after the build — include it
+!docker/Nuitka-commercial-main.zip

@@ -1,0 +1,8 @@
+.venv/
+CPTFiles/
+dist/
+__pycache__/
+*.egg-info/
+*.pyc
+.env
+*.tar.gz
