@@ -6,3 +6,6 @@ __pycache__/
 *.pyc
 .env
 *.tar.gz
+dist_macarm64/
+*.dist/
+*.build/
