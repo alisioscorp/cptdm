@@ -1,12 +1,9 @@
-.venv/
-CPTFiles/
-dist/
-__pycache__/
-*.egg-info/
-*.pyc
-.env
-*.tar.gz
-dist_macarm64/
-*.dist/
-*.build/
-*.swp
+# Exclude everything
+*
+
+# Except these
+!.gitignore
+!README.md
+!.github/
+!.github/workflows/
+!.github/workflows/build-linux.yml
