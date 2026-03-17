@@ -1,9 +1,3 @@
-# Exclude everything
 *
-
-# Except these
 !.gitignore
 !README.md
-!.github/
-!.github/workflows/
-!.github/workflows/build-linux.yml
