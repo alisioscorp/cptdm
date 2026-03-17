@@ -54,6 +54,7 @@ jobs:
             --file-description="Climate Predictability Tool Data Acquisition Module" \
             --copyright="Copyright 2025 Alisios Corporation. All rights reserved." \
             --warn-implicit-exceptions \
+            --jobs=1 \
             src/cptdm
       - name: Smoke test
         run: |
