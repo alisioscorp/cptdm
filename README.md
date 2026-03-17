@@ -1,4 +1,4 @@
-# CPT-DM — Climate Predictability Tool Data Manager
+# CPT-DM — Climate Predictability Tool Data Acquisition and Download Module
 
 **Produced by:** Alisios Corporation (https://alisioscorporation.com)  
 **Project lead:** Ángel G. Muñoz — angel.g.munoz@alisioscorporation.com  
