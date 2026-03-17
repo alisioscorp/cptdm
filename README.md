@@ -1,6 +1,5 @@
 # CPT-DM — Climate Predictability Tool Data Manager
 
-**Version:** 0.4.9  
 **Produced by:** Alisios Corporation (https://alisioscorporation.com)  
 **Project lead:** Ángel G. Muñoz — angel.g.munoz@alisioscorporation.com  
 **SEI lead:** Simon J. Mason — simon.mason@sei.org  
