@@ -4,7 +4,7 @@
 **Project lead:** Ángel G. Muñoz — angel.g.munoz@alisioscorporation.com  
 **SEI lead:** Simon J. Mason — simon.mason@sei.org  
 **UKMO lead:** Nicholas Savage — nicholas.savage@metoffice.gov.uk  
-**Contract:** SEI/25-173 | Funded by UK Met Office / WISER programme (UKRI / FCDO)
+**Contract:** SEI/25-173 | Funded by UK Met Office's WISER  (Weather and Climate Information Services) Programme, funded through international development by the UK's Foreign Commonwealth and Development Office (FCDO).
 
 ---
 
