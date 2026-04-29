@@ -1,0 +1,1317 @@
+# =============================================================================
+# CPT-DM Dataset Registry  (datasets.yml)
+# Part of: CPT-DM — Climate Predictability Tool, Data Acquisition & Download Module
+# Produced by Alisios Corporation (https://alisioscorporation.com)
+# Contact: angel.g.munoz@alisioscorporation.com
+# =============================================================================
+#
+# PLACEMENT
+# ---------
+# Place this file in the SAME DIRECTORY as the cptdm binary (or cptdm.exe on
+# Windows).  At startup CPT-DM looks for datasets.yml next to the executable
+# first; if not found it falls back to the copy bundled inside the binary.
+# Editing this external copy lets you add sources or tweak parameters without
+# rebuilding.
+#
+# SCHEMA RULES  (validated at startup by registry/loader.py)
+# ----------------------------------------------------------
+#   - Each top-level key is a dataset_id (used in --dataset flag).
+#   - provider:    one of [cds, http, opendap, thredds, s2sdb, subc, http_index]
+#   - timescales:  list of [seasonal, intraseasonal]
+#   - file_type:   one of [forecast, hindcast, obs, reanalysis, index]
+#   - variables:   list of variable IDs this dataset provides
+#   - clim_years:  default climatology period [start, end]; null = use all years
+#   - valid_pairs: datasets that can be paired with this one as obs/rean
+#     (only required for forecast/hindcast entries)
+#   - cds_params / http_params / opendap_params / s2sdb_params / subc_params:
+#     provider-specific config (no secrets; credentials live in ~/.cdsapirc or
+#     env vars)
+#
+# HOW TO ADD A NEW VARIABLE TO AN EXISTING SOURCE
+# ------------------------------------------------
+# 1. Find the dataset entry below (e.g. cds_ecmwf_seasonal).
+# 2. Add the variable ID to the top-level "variables" list.
+# 3. Inside the provider-specific params block (e.g. cds_params.variables),
+#    add a sub-key for the new variable with at minimum:
+#      nc_var, units_in, units_out, aggregation
+#    Plus any provider-specific keys (e.g. "hindcast" CDS API name for CDS,
+#    "has_daily" for NMME HTTP).
+# 4. If this is a forecast dataset, update valid_pairs to list which obs/rean
+#    datasets can be paired with this variable.
+#
+# HOW TO ADD AN ENTIRELY NEW SOURCE
+# ----------------------------------
+# 1. Choose a unique dataset_id (e.g. cds_newmodel_seasonal).
+# 2. Create a new top-level entry under the appropriate category section.
+# 3. Set provider, timescales, file_type, variables, clim_years.
+# 4. Add the provider-specific params block with variable definitions.
+# 5. For forecast/hindcast entries, define valid_pairs.
+# 6. If the provider is new (not yet in VALID_PROVIDERS in loader.py),
+#    you must also implement a provider class in src/cptdm/providers/.
+#
+# =============================================================================
+
+schema_version: "0.1"
+
+# ╔═══════════════════════════════════════════════════════════════════════════╗
+# ║  available_years syntax (v0.7.0)                                        ║
+# ╠═══════════════════════════════════════════════════════════════════════════╣
+# ║  [1981, 2016]          → fixed range (legacy, backward-compatible)      ║
+# ║  [1981, ":"]           → open-ended: 1981 to present year              ║
+# ║  ["1993:2016", "2021:"]→ multi-range with gap: 1993-2016 + 2021-now    ║
+# ║                                                                         ║
+# ║  --clim spanning a gap silently skips unavailable years.                ║
+# ║  Example: --clim 1993-2025 on a model with hindcasts 1993-2016 and     ║
+# ║  forecasts 2021-present will use 1993-2016 + 2021-2025 (24 years).     ║
+# ╚═══════════════════════════════════════════════════════════════════════════╝
+
+
+# ╔═══════════════════════════════════════════════════════════════════════════╗
+# ║  SEASONAL FORECASTS — CDS (Copernicus Climate Data Store)               ║
+# ╚═══════════════════════════════════════════════════════════════════════════╝
+
+cds_ecmwf_seasonal:
+  label: "ECMWF SEAS5 (CDS)"
+  short_label: "ecmwf"
+  provider: cds
+  timescales: [seasonal]
+  file_type: forecast   # also produces hindcast; handled by orchestrator
+  variables: [prcp, tmax, tmin, tmean, rfreq]
+  clim_years: [1993, 2016]   # C3S default base period
+  available_years: [1981, ":"]
+  # rfreq available via seasonal-original-single-levels (daily) from all C3S models.
+  valid_pairs:
+    prcp: [chirps3, cru409]
+    rfreq: [chirps3, cru409]
+    tmax: [era5land, cru409]
+    tmin: [era5land, cru409]
+    tmean: [era5land, cru409]
+  cds_params:
+    dataset_hindcast: "seasonal-monthly-single-levels"
+    originating_centre: "ecmwf"
+    system: "51"
+    variables:
+      prcp:
+        hindcast: "total_precipitation"
+        nc_var: "tprate"
+        units_in: "m/s"          # rate; converted to mm/month in pipeline
+        units_out: "mm"
+        aggregation: total
+      tmax:
+        hindcast: "maximum_2m_temperature_in_the_last_24_hours"
+        nc_var: "mx2t24"
+        units_in: "K"
+        units_out: "degree_Celsius"
+        aggregation: mean
+      tmin:
+        hindcast: "minimum_2m_temperature_in_the_last_24_hours"
+        nc_var: "mn2t24"
+        units_in: "K"
+        units_out: "degree_Celsius"
+        aggregation: mean
+      tmean:
+        hindcast: "2m_temperature"
+        nc_var: "t2m"
+        units_in: "K"
+        units_out: "degree_Celsius"
+        aggregation: mean
+      rfreq:
+        # Rainfall frequency: count days with tp > wet_day_threshold (default 1 mm/day).
+        # Uses seasonal-original-single-levels (daily). Available from all C3S models.
+        hindcast: "total_precipitation"
+        forecast: "total_precipitation"
+        nc_var: "tp"
+        dataset_daily: "seasonal-original-single-levels"
+        units_in: "m/day"
+        units_out: "days"
+        aggregation: rfreq
+    product_type_hindcast: "monthly_mean"
+
+cds_ncep_seasonal:
+  label: "NCEP CFSv2 (CDS)"
+  short_label: "ncep"
+  provider: cds
+  timescales: [seasonal]
+  file_type: forecast
+  variables: [prcp, tmax, tmin, tmean, rfreq]
+  clim_years: [1982, 2010]
+  available_years: [1982, ":"]
+  valid_pairs:
+    prcp: [chirps3, cru409]
+    rfreq: [chirps3, cru409]
+    tmax: [era5land, cru409]
+    tmin: [era5land, cru409]
+    tmean: [era5land, cru409]
+  cds_params:
+    dataset_hindcast: "seasonal-monthly-single-levels"
+    originating_centre: "ncep"
+    system: "2"
+    variables:
+      prcp:
+        hindcast: "total_precipitation"
+        nc_var: "tprate"
+        units_in: "m/s"
+        units_out: "mm"
+        aggregation: total
+      tmax:
+        hindcast: "maximum_2m_temperature_in_the_last_24_hours"
+        nc_var: "mx2t24"
+        units_in: "K"
+        units_out: "degree_Celsius"
+        aggregation: mean
+      tmin:
+        hindcast: "minimum_2m_temperature_in_the_last_24_hours"
+        nc_var: "mn2t24"
+        units_in: "K"
+        units_out: "degree_Celsius"
+        aggregation: mean
+      tmean:
+        hindcast: "2m_temperature"
+        nc_var: "t2m"
+        units_in: "K"
+        units_out: "degree_Celsius"
+        aggregation: mean
+      rfreq:
+        # Rainfall frequency: count days with tp > wet_day_threshold (default 1 mm/day).
+        # Uses seasonal-original-single-levels (daily). Available from all C3S models.
+        hindcast: "total_precipitation"
+        forecast: "total_precipitation"
+        nc_var: "tp"
+        dataset_daily: "seasonal-original-single-levels"
+        units_in: "m/day"
+        units_out: "days"
+        aggregation: rfreq
+    product_type_hindcast: "monthly_mean"
+
+cds_eccc_seasonal:
+  label: "ECCC CanSIPSv2 (CDS)"
+  short_label: "eccc"
+  provider: cds
+  timescales: [seasonal]
+  file_type: forecast
+  variables: [prcp, tmax, tmin, tmean, rfreq]
+  clim_years: [1981, 2010]   # CDS CanSIPSv2 hindcast period
+  available_years: [1981, ":"]
+  valid_pairs:
+    prcp: [chirps3, cru409]
+    rfreq: [chirps3, cru409]
+    tmax: [era5land, cru409]
+    tmin: [era5land, cru409]
+    tmean: [era5land, cru409]
+  cds_params:
+    dataset_hindcast: "seasonal-monthly-single-levels"
+    originating_centre: "eccc"
+    system: "5"
+    variables:
+      prcp:
+        hindcast: "total_precipitation"
+        nc_var: "tprate"
+        units_in: "m/s"
+        units_out: "mm"
+        aggregation: total
+      tmax:
+        hindcast: "maximum_2m_temperature_in_the_last_24_hours"
+        nc_var: "mx2t24"
+        units_in: "K"
+        units_out: "degree_Celsius"
+        aggregation: mean
+      tmin:
+        hindcast: "minimum_2m_temperature_in_the_last_24_hours"
+        nc_var: "mn2t24"
+        units_in: "K"
+        units_out: "degree_Celsius"
+        aggregation: mean
+      tmean:
+        hindcast: "2m_temperature"
+        nc_var: "t2m"
+        units_in: "K"
+        units_out: "degree_Celsius"
+        aggregation: mean
+      rfreq:
+        # Rainfall frequency: count days with tp > wet_day_threshold (default 1 mm/day).
+        # Uses seasonal-original-single-levels (daily). Available from all C3S models.
+        hindcast: "total_precipitation"
+        forecast: "total_precipitation"
+        nc_var: "tp"
+        dataset_daily: "seasonal-original-single-levels"
+        units_in: "m/day"
+        units_out: "days"
+        aggregation: rfreq
+    product_type_hindcast: "monthly_mean"
+
+cds_ukmo_glosea605:
+  label: "UKMO GloSea605 (CDS)"
+  short_label: "ukmo"
+  provider: cds
+  timescales: [seasonal]
+  file_type: forecast
+  # GloSea605 is the current live system (new physics scheme).
+  # System number increments yearly; update here when UKMO releases a new one.
+  # See: https://confluence.ecmwf.int/display/CKB/Summary+of+available+data
+  variables: [prcp, tmean, rfreq]
+  clim_years: [1993, 2016]
+  available_years: [1993, ":"]
+  valid_pairs:
+    prcp: [chirps3, cru409]
+    rfreq: [chirps3, cru409]
+    tmean: [era5land, cru409]
+  cds_params:
+    dataset_hindcast: "seasonal-monthly-single-levels"
+    originating_centre: "ukmo"
+    system: "605"
+    variables:
+      prcp:
+        hindcast: "total_precipitation"
+        nc_var: "tprate"
+        units_in: "m/s"
+        units_out: "mm"
+        aggregation: total
+      tmean:
+        hindcast: "2m_temperature"
+        nc_var: "t2m"
+        units_in: "K"
+        units_out: "degree_Celsius"
+        aggregation: mean
+      rfreq:
+        # Rainfall frequency: count days with tp > wet_day_threshold (default 1 mm/day).
+        # Uses seasonal-original-single-levels (daily). Available from all C3S models.
+        hindcast: "total_precipitation"
+        forecast: "total_precipitation"
+        nc_var: "tp"
+        dataset_daily: "seasonal-original-single-levels"
+        units_in: "m/day"
+        units_out: "days"
+        aggregation: rfreq
+    product_type_hindcast: "monthly_mean"
+
+cds_meteo_france_system8:
+  label: "Météo-France System 8 (CDS)"
+  short_label: "mf8"
+  provider: cds
+  timescales: [seasonal]
+  file_type: forecast
+  variables: [prcp, tmean, rfreq]
+  clim_years: [1993, 2016]
+  available_years: [1993, ":"]
+  valid_pairs:
+    prcp: [chirps3, cru409]
+    rfreq: [chirps3, cru409]
+    tmean: [era5land, cru409]
+  cds_params:
+    dataset_hindcast: "seasonal-monthly-single-levels"
+    originating_centre: "meteo_france"
+    system: "8"
+    variables:
+      prcp:
+        hindcast: "total_precipitation"
+        nc_var: "tprate"
+        units_in: "m/s"
+        units_out: "mm"
+        aggregation: total
+      tmean:
+        hindcast: "2m_temperature"
+        nc_var: "t2m"
+        units_in: "K"
+        units_out: "degree_Celsius"
+        aggregation: mean
+      rfreq:
+        # Rainfall frequency: count days with tp > wet_day_threshold (default 1 mm/day).
+        # Uses seasonal-original-single-levels (daily). Available from all C3S models.
+        hindcast: "total_precipitation"
+        forecast: "total_precipitation"
+        nc_var: "tp"
+        dataset_daily: "seasonal-original-single-levels"
+        units_in: "m/day"
+        units_out: "days"
+        aggregation: rfreq
+    product_type_hindcast: "monthly_mean"
+
+cds_cmcc_sps35:
+  label: "CMCC SPS3.5 (CDS)"
+  short_label: "cmcc"
+  provider: cds
+  timescales: [seasonal]
+  file_type: forecast
+  variables: [prcp, tmean, rfreq]
+  clim_years: [1993, 2016]
+  available_years: [1993, ":"]
+  valid_pairs:
+    prcp: [chirps3, cru409]
+    rfreq: [chirps3, cru409]
+    tmean: [era5land, cru409]
+  cds_params:
+    dataset_hindcast: "seasonal-monthly-single-levels"
+    originating_centre: "cmcc"
+    system: "3"
+    variables:
+      prcp:
+        hindcast: "total_precipitation"
+        nc_var: "tprate"
+        units_in: "m/s"
+        units_out: "mm"
+        aggregation: total
+      tmean:
+        hindcast: "2m_temperature"
+        nc_var: "t2m"
+        units_in: "K"
+        units_out: "degree_Celsius"
+        aggregation: mean
+      rfreq:
+        # Rainfall frequency: count days with tp > wet_day_threshold (default 1 mm/day).
+        # Uses seasonal-original-single-levels (daily). Available from all C3S models.
+        hindcast: "total_precipitation"
+        forecast: "total_precipitation"
+        nc_var: "tp"
+        dataset_daily: "seasonal-original-single-levels"
+        units_in: "m/day"
+        units_out: "days"
+        aggregation: rfreq
+    product_type_hindcast: "monthly_mean"
+
+cds_dwd_gcfs21:
+  label: "DWD GCFS2.1 (CDS)"
+  short_label: "dwd"
+  provider: cds
+  timescales: [seasonal]
+  file_type: forecast
+  variables: [prcp, tmean, rfreq]
+  clim_years: [1993, 2016]
+  available_years: [1993, ":"]
+  valid_pairs:
+    prcp: [chirps3, cru409]
+    rfreq: [chirps3, cru409]
+    tmean: [era5land, cru409]
+  cds_params:
+    dataset_hindcast: "seasonal-monthly-single-levels"
+    originating_centre: "dwd"
+    system: "21"
+    variables:
+      prcp:
+        hindcast: "total_precipitation"
+        nc_var: "tprate"
+        units_in: "m/s"
+        units_out: "mm"
+        aggregation: total
+      tmean:
+        hindcast: "2m_temperature"
+        nc_var: "t2m"
+        units_in: "K"
+        units_out: "degree_Celsius"
+        aggregation: mean
+      rfreq:
+        # Rainfall frequency: count days with tp > wet_day_threshold (default 1 mm/day).
+        # Uses seasonal-original-single-levels (daily). Available from all C3S models.
+        hindcast: "total_precipitation"
+        forecast: "total_precipitation"
+        nc_var: "tp"
+        dataset_daily: "seasonal-original-single-levels"
+        units_in: "m/day"
+        units_out: "days"
+        aggregation: rfreq
+    product_type_hindcast: "monthly_mean"
+
+cds_jma_cps3:
+  label: "JMA CPS3 (CDS)"
+  short_label: "jma"
+  provider: cds
+  timescales: [seasonal]
+  file_type: forecast
+  variables: [prcp, tmean, rfreq]
+  clim_years: [1993, 2016]
+  available_years: [1993, ":"]
+  valid_pairs:
+    prcp: [chirps3, cru409]
+    rfreq: [chirps3, cru409]
+    tmean: [era5land, cru409]
+  cds_params:
+    dataset_hindcast: "seasonal-monthly-single-levels"
+    originating_centre: "jma"
+    system: "3"
+    variables:
+      prcp:
+        hindcast: "total_precipitation"
+        nc_var: "tprate"
+        units_in: "m/s"
+        units_out: "mm"
+        aggregation: total
+      tmean:
+        hindcast: "2m_temperature"
+        nc_var: "t2m"
+        units_in: "K"
+        units_out: "degree_Celsius"
+        aggregation: mean
+      rfreq:
+        # Rainfall frequency: count days with tp > wet_day_threshold (default 1 mm/day).
+        # Uses seasonal-original-single-levels (daily). Available from all C3S models.
+        hindcast: "total_precipitation"
+        forecast: "total_precipitation"
+        nc_var: "tp"
+        dataset_daily: "seasonal-original-single-levels"
+        units_in: "m/day"
+        units_out: "days"
+        aggregation: rfreq
+    product_type_hindcast: "monthly_mean"
+
+
+# ╔═══════════════════════════════════════════════════════════════════════════╗
+# ║  SEASONAL FORECASTS — NMME (via NOAA FTP/HTTPS mirror)                 ║
+# ║  Note: IRIDL is defunct. NMME data accessed via ftp.cpc.ncep.noaa.gov. ║
+# ║  Daily data availability varies by model; RFREQ only where daily avail.║
+# ╚═══════════════════════════════════════════════════════════════════════════╝
+
+nmme_cfsv2:
+  label: "NMME CFSv2 (NOAA FTP)"
+  short_label: "CFSv2"
+  provider: http
+  timescales: [seasonal]
+  file_type: forecast
+  variables: [prcp, tmean, rfreq]
+  clim_years: [1991, 2020]   # WMO standard; data available from 1982
+  available_years: [1982, ":"]
+  valid_pairs:
+    prcp: [chirps3, cru409]
+    rfreq: [chirps3, cru409]
+    tmean: [era5land, cru409]
+  http_params:
+    base_url: "https://ftp.cpc.ncep.noaa.gov/NMME"
+    hindcast_path: "/clim/{model}/{variable}/"
+    realtime_path: "/realtime_anom/{model}/{variable}/"
+    file_pattern_hindcast: "{model}.{variable}.{YYYYMM}.nc"
+    file_pattern_forecast: "{model}.{variable}.{YYYYMM}.nc"
+    model_id: "CFSv2"
+    variables:
+      prcp:
+        nc_var: "prec"
+        units_in: "mm/day"
+        units_out: "mm"
+        aggregation: total
+        has_daily: true      # CFSv2 has daily → RFREQ computable
+      tmean:
+        nc_var: "tref"
+        units_in: "K"
+        units_out: "degree_Celsius"
+        aggregation: mean
+        has_daily: false
+
+nmme_cansipsv2:
+  label: "NMME CanSIPSv2 (NOAA FTP)"
+  short_label: "CanSIPSv2"
+  provider: http
+  timescales: [seasonal]
+  file_type: forecast
+  variables: [prcp, tmean]
+  clim_years: [1991, 2020]   # WMO standard; data available from 1981
+  available_years: [1981, ":"]
+  valid_pairs:
+    prcp: [chirps3, cru409]
+    rfreq: [chirps3, cru409]
+    tmean: [era5land, cru409]
+  http_params:
+    base_url: "https://ftp.cpc.ncep.noaa.gov/NMME"
+    hindcast_path: "/clim/{model}/{variable}/"
+    realtime_path: "/realtime_anom/{model}/{variable}/"
+    file_pattern_hindcast: "{model}.{variable}.{YYYYMM}.nc"
+    file_pattern_forecast: "{model}.{variable}.{YYYYMM}.nc"
+    model_id: "CanESM5"   # was CanCM4i; CanESM5 is the current model on the FTP
+    variables:
+      prcp:
+        nc_var: "prec"
+        units_in: "mm/day"
+        units_out: "mm"
+        aggregation: total
+        has_daily: false
+      tmean:
+        nc_var: "tref"
+        units_in: "K"
+        units_out: "degree_Celsius"
+        aggregation: mean
+        has_daily: false
+
+nmme_gem52_nemo:
+  label: "NMME GEM5.2-NEMO (NOAA FTP)"
+  short_label: "GEM5.2-NEMO"
+  provider: http
+  timescales: [seasonal]
+  file_type: forecast
+  variables: [prcp, tmean]
+  clim_years: [1993, 2020]
+  hindcast_only: true
+  # ⚠ GEM5.2-NEMO AVAILABILITY NOTE (for documentation):
+  #   Climatology files are only available on the NOAA CPC FTP for
+  #   initialisation months 05 (May), 06 (June), and 07 (July).
+  #   Selecting this model with any other init month will fail at download.
+  #   Realtime anomaly forecasts are not posted for this model.
+  #   This limitation is upstream (NOAA FTP) and cannot be resolved in CPT-DM.
+  valid_pairs:
+    prcp: [chirps3, cru409]
+    rfreq: [chirps3, cru409]
+    tmean: [era5land, cru409]
+  http_params:
+    base_url: "https://ftp.cpc.ncep.noaa.gov/NMME"
+    hindcast_path: "/clim/{model}/{variable}/"
+    realtime_path: "/realtime_anom/{model}/{variable}/"
+    file_pattern_hindcast: "{model}.{variable}.{YYYYMM}.nc"
+    file_pattern_forecast: "{model}.{variable}.{YYYYMM}.nc"
+    model_id: "GEM5.2_NEMO"
+    variables:
+      prcp:
+        nc_var: "prec"
+        units_in: "mm/day"
+        units_out: "mm"
+        aggregation: total
+        has_daily: false
+      tmean:
+        nc_var: "tref"
+        units_in: "K"
+        units_out: "degree_Celsius"
+        aggregation: mean
+        has_daily: false
+
+nmme_gfdl_spear:
+  label: "NMME GFDL-SPEAR (NOAA FTP)"
+  short_label: "GFDL-SPEAR"
+  provider: http
+  timescales: [seasonal]
+  file_type: forecast
+  variables: [prcp, tmean]
+  clim_years: [1991, 2020]
+  available_years: [1991, ":"]
+  valid_pairs:
+    prcp: [chirps3, cru409]
+    rfreq: [chirps3, cru409]
+    tmean: [era5land, cru409]
+  http_params:
+    base_url: "https://ftp.cpc.ncep.noaa.gov/NMME"
+    hindcast_path: "/clim/{model}/{variable}/"
+    realtime_path: "/realtime_anom/{model}/{variable}/"
+    file_pattern_hindcast: "{model}.{variable}.{YYYYMM}.nc"
+    file_pattern_forecast: "{model}.{variable}.{YYYYMM}.nc"
+    model_id: "GFDL_SPEAR"
+    variables:
+      prcp:
+        nc_var: "prec"
+        units_in: "mm/day"
+        units_out: "mm"
+        aggregation: total
+        has_daily: false
+      tmean:
+        nc_var: "tref"
+        units_in: "K"
+        units_out: "degree_Celsius"
+        aggregation: mean
+        has_daily: false
+
+nmme_nasa_geoss2s:
+  label: "NMME NASA-GEOSS2S (NOAA FTP)"
+  short_label: "NASA-GEOSS2S"
+  provider: http
+  timescales: [seasonal]
+  file_type: forecast
+  variables: [prcp, tmean]
+  clim_years: [1991, 2020]   # WMO standard; data available from 1981
+  available_years: [1981, ":"]
+  valid_pairs:
+    prcp: [chirps3, cru409]
+    rfreq: [chirps3, cru409]
+    tmean: [era5land, cru409]
+  http_params:
+    base_url: "https://ftp.cpc.ncep.noaa.gov/NMME"
+    hindcast_path: "/clim/{model}/{variable}/"
+    realtime_path: "/realtime_anom/{model}/{variable}/"
+    file_pattern_hindcast: "{model}.{variable}.{YYYYMM}.nc"
+    file_pattern_forecast: "{model}.{variable}.{YYYYMM}.nc"
+    model_id: "NASA_GEOS5v2"
+    variables:
+      prcp:
+        nc_var: "prec"
+        units_in: "mm/day"
+        units_out: "mm"
+        aggregation: total
+        has_daily: false
+      tmean:
+        nc_var: "tref"
+        units_in: "K"
+        units_out: "degree_Celsius"
+        aggregation: mean
+        has_daily: false
+
+nmme_ncar_cesm1:
+  label: "NMME NCAR-CESM1 (NOAA FTP)"
+  short_label: "NCAR-CESM1"
+  provider: http
+  timescales: [seasonal]
+  file_type: forecast
+  variables: [prcp, tmean]
+  clim_years: [1991, 2020]   # WMO standard; data available from 1981
+  available_years: [1981, ":"]
+  valid_pairs:
+    prcp: [chirps3, cru409]
+    rfreq: [chirps3, cru409]
+    tmean: [era5land, cru409]
+  http_params:
+    base_url: "https://ftp.cpc.ncep.noaa.gov/NMME"
+    hindcast_path: "/clim/{model}/{variable}/"
+    realtime_path: "/realtime_anom/{model}/{variable}/"
+    file_pattern_hindcast: "{model}.{variable}.{YYYYMM}.nc"
+    file_pattern_forecast: "{model}.{variable}.{YYYYMM}.nc"
+    model_id: "NCAR_CCSM4"
+    variables:
+      prcp:
+        nc_var: "prec"
+        units_in: "mm/day"
+        units_out: "mm"
+        aggregation: total
+        has_daily: false
+      tmean:
+        nc_var: "tref"
+        units_in: "K"
+        units_out: "degree_Celsius"
+        aggregation: mean
+        has_daily: false
+
+nmme_gem_nemo:
+  label: "NMME GEM-NEMO (NOAA FTP)"
+  short_label: "GEM-NEMO"
+  provider: http
+  timescales: [seasonal]
+  file_type: forecast
+  variables: [prcp, tmean]
+  clim_years: [1991, 2020]   # WMO standard; data available from 1981
+  available_years: [1981, ":"]
+  valid_pairs:
+    prcp: [chirps3, cru409]
+    rfreq: [chirps3, cru409]
+    tmean: [era5land, cru409]
+  http_params:
+    base_url: "https://ftp.cpc.ncep.noaa.gov/NMME"
+    hindcast_path: "/clim/{model}/{variable}/"
+    realtime_path: "/realtime_anom/{model}/{variable}/"
+    file_pattern_hindcast: "{model}.{variable}.{YYYYMM}.nc"
+    file_pattern_forecast: "{model}.{variable}.{YYYYMM}.nc"
+    model_id: "GEM_NEMO"
+    variables:
+      prcp:
+        nc_var: "prec"
+        units_in: "mm/day"
+        units_out: "mm"
+        aggregation: total
+        has_daily: false
+      tmean:
+        nc_var: "tref"
+        units_in: "K"
+        units_out: "degree_Celsius"
+        aggregation: mean
+        has_daily: false
+
+
+# ╔═══════════════════════════════════════════════════════════════════════════╗
+# ║  SUB-SEASONAL FORECASTS — S2S Database (via ECMWF API)                 ║
+# ╚═══════════════════════════════════════════════════════════════════════════╝
+
+s2sdb_ecmwf:
+  label: "S2S ECMWF (S2S Database)"
+  short_label: "ecmwf"
+  provider: s2sdb
+  timescales: [intraseasonal]
+  file_type: forecast
+  variables: [prcp, tmean]
+  clim_years: [1999, 2019]   # standard S2SDB hindcast period for ECMWF
+  available_years: [1999, ":"]
+  valid_pairs:
+    prcp: [chirps3]
+    tmean: [era5land]
+  s2sdb_params:
+    model: "ecmwf"
+    variables:
+      prcp:
+        parameter: "tp"      # total precipitation
+        units_in: "m"
+        units_out: "mm"
+        aggregation: total
+      tmean:
+        parameter: "2t"
+        units_in: "K"
+        units_out: "degree_Celsius"
+        aggregation: mean
+    # Available weeks: 1, 2, 3, 4, 34 (combined weeks 3+4)
+    available_leads: [week1, week2, week3, week4, week34]
+    # Init dates available roughly twice-weekly for ECMWF
+    init_frequency: "twice_weekly"
+
+s2sdb_ncep:
+  label: "S2S NCEP (S2S Database)"
+  short_label: "ncep"
+  provider: s2sdb
+  timescales: [intraseasonal]
+  file_type: forecast
+  variables: [prcp, tmean]
+  clim_years: [1999, 2010]
+  available_years: [1999, ":"]
+  valid_pairs:
+    prcp: [chirps3]
+    tmean: [era5land]
+  s2sdb_params:
+    model: "ncep"
+    step_type: "point"       # 24h point steps: 24/48/72/...
+    step_hours: 24
+    date_type: "range"       # date: YYYY-MM-01/to/YYYY-MM-DD
+    variables:
+      prcp:
+        parameter: "tp"
+        units_in: "m"
+        units_out: "mm"
+        aggregation: total
+      tmean:
+        parameter: "2t"
+        units_in: "K"
+        units_out: "degree_Celsius"
+        aggregation: mean
+    available_leads: [week1, week2, week3, week4, week34]
+    init_frequency: "daily"
+
+s2sdb_ukmo:
+  label: "S2S UKMO (S2S Database)"
+  short_label: "ukmo"
+  provider: s2sdb
+  timescales: [intraseasonal]
+  file_type: forecast
+  variables: [prcp, tmean]
+  clim_years: [1993, 2016]   # on-the-fly reforecasts, ~20 years back
+  available_years: [1993, ":"]
+  valid_pairs:
+    prcp: [chirps3]
+    tmean: [era5land]
+  s2sdb_params:
+    model: "ukmo"
+    embargo_days: 21          # UKMO has ~3 week embargo on real-time data
+    variables:
+      prcp:
+        parameter: "tp"
+        units_in: "m"
+        units_out: "mm"
+        aggregation: total
+      tmean:
+        parameter: "2t"
+        units_in: "K"
+        units_out: "degree_Celsius"
+        aggregation: mean
+    available_leads: [week1, week2, week3, week4, week34]
+    init_frequency: "twice_weekly"
+
+s2sdb_eccc:
+  label: "S2S ECCC (S2S Database)"
+  short_label: "eccc"
+  provider: s2sdb
+  timescales: [intraseasonal]
+  file_type: forecast
+  variables: [prcp, tmean]
+  clim_years: [2001, 2020]   # on-the-fly reforecasts
+  available_years: [2001, ":"]
+  valid_pairs:
+    prcp: [chirps3]
+    tmean: [era5land]
+  s2sdb_params:
+    model: "eccc"
+    variables:
+      prcp:
+        parameter: "tp"
+        units_in: "m"
+        units_out: "mm"
+        aggregation: total
+      tmean:
+        parameter: "2t"
+        units_in: "K"
+        units_out: "degree_Celsius"
+        aggregation: mean
+    available_leads: [week1, week2, week3, week4, week34]
+    init_frequency: "twice_weekly"
+
+s2sdb_jma:
+  label: "S2S JMA (S2S Database)"
+  short_label: "jma"
+  provider: s2sdb
+  timescales: [intraseasonal]
+  file_type: forecast
+  variables: [prcp, tmean]
+  clim_years: [1981, 2010]   # fixed reforecast set
+  available_years: [1981, ":"]
+  valid_pairs:
+    prcp: [chirps3]
+    tmean: [era5land]
+  s2sdb_params:
+    model: "jma"
+    variables:
+      prcp:
+        parameter: "tp"
+        units_in: "m"
+        units_out: "mm"
+        aggregation: total
+      tmean:
+        parameter: "2t"
+        units_in: "K"
+        units_out: "degree_Celsius"
+        aggregation: mean
+    available_leads: [week1, week2, week3, week4, week34]
+    init_frequency: "weekly"
+
+s2sdb_cma:
+  label: "S2S CMA (S2S Database)"
+  short_label: "cma"
+  provider: s2sdb
+  timescales: [intraseasonal]
+  file_type: forecast
+  variables: [prcp, tmean]
+  clim_years: [1994, 2014]   # on-the-fly reforecasts
+  available_years: [1994, ":"]
+  valid_pairs:
+    prcp: [chirps3]
+    tmean: [era5land]
+  s2sdb_params:
+    model: "cma"
+    variables:
+      prcp:
+        parameter: "tp"
+        units_in: "m"
+        units_out: "mm"
+        aggregation: total
+      tmean:
+        parameter: "2t"
+        units_in: "K"
+        units_out: "degree_Celsius"
+        aggregation: mean
+    available_leads: [week1, week2, week3, week4, week34]
+    init_frequency: "twice_weekly"
+
+s2sdb_bom:
+  label: "S2S BoM (S2S Database)"
+  short_label: "bom"
+  provider: s2sdb
+  timescales: [intraseasonal]
+  file_type: forecast
+  variables: [prcp, tmean]
+  clim_years: [1981, 2013]   # fixed reforecast set
+  available_years: [1981, ":"]
+  valid_pairs:
+    prcp: [chirps3]
+    tmean: [era5land]
+  s2sdb_params:
+    model: "bom"
+    variables:
+      prcp:
+        parameter: "tp"
+        units_in: "m"
+        units_out: "mm"
+        aggregation: total
+      tmean:
+        parameter: "2t"
+        units_in: "K"
+        units_out: "degree_Celsius"
+        aggregation: mean
+    available_leads: [week1, week2, week3, week4, week34]
+    init_frequency: "twice_weekly"
+
+s2sdb_cnrm:
+  label: "S2S CNRM/Météo-France (S2S Database)"
+  short_label: "cnrm"
+  provider: s2sdb
+  timescales: [intraseasonal]
+  file_type: forecast
+  variables: [prcp, tmean]
+  clim_years: [1993, 2014]   # fixed reforecast set
+  available_years: [1993, ":"]
+  valid_pairs:
+    prcp: [chirps3]
+    tmean: [era5land]
+  s2sdb_params:
+    model: "cnrm"
+    date_type: "range_weekly"  # date: YYYY-MM-01/to/YYYY-MM-DD/by/7
+    embargo_days: 42             # CNRM has ~6 week embargo on real-time data
+    variables:
+      prcp:
+        parameter: "tp"
+        units_in: "m"
+        units_out: "mm"
+        aggregation: total
+      tmean:
+        parameter: "2t"
+        units_in: "K"
+        units_out: "degree_Celsius"
+        aggregation: mean
+    available_leads: [week1, week2, week3, week4, week34]
+    init_frequency: "twice_weekly"
+
+s2sdb_isac:
+  label: "S2S ISAC-CNR (S2S Database)"
+  short_label: "isac"
+  provider: s2sdb
+  timescales: [intraseasonal]
+  file_type: forecast
+  variables: [prcp, tmean]
+  clim_years: [1981, 2010]   # fixed reforecast set
+  available_years: [1981, ":"]
+  valid_pairs:
+    prcp: [chirps3]
+    tmean: [era5land]
+  s2sdb_params:
+    model: "isac"
+    variables:
+      prcp:
+        parameter: "tp"
+        units_in: "m"
+        units_out: "mm"
+        aggregation: total
+      tmean:
+        parameter: "2t"
+        units_in: "K"
+        units_out: "degree_Celsius"
+        aggregation: mean
+    available_leads: [week1, week2, week3, week4, week34]
+    init_frequency: "weekly"
+
+s2sdb_cptec:
+  label: "S2S CPTEC/INPE (S2S Database)"
+  short_label: "cptec"
+  provider: s2sdb
+  timescales: [intraseasonal]
+  file_type: forecast
+  variables: [prcp, tmean]
+  clim_years: [1999, 2010]   # fixed reforecast set
+  available_years: [1999, ":"]
+  valid_pairs:
+    prcp: [chirps3]
+    tmean: [era5land]
+  s2sdb_params:
+    model: "cptec"
+    variables:
+      prcp:
+        parameter: "tp"
+        units_in: "m"
+        units_out: "mm"
+        aggregation: total
+      tmean:
+        parameter: "2t"
+        units_in: "K"
+        units_out: "degree_Celsius"
+        aggregation: mean
+    available_leads: [week1, week2, week3, week4, week34]
+    init_frequency: "weekly"
+
+s2sdb_kma:
+  label: "S2S KMA (S2S Database)"
+  short_label: "kma"
+  provider: s2sdb
+  timescales: [intraseasonal]
+  file_type: forecast
+  variables: [prcp, tmean]
+  clim_years: [1991, 2020]   # on-the-fly reforecasts
+  available_years: [1991, ":"]
+  valid_pairs:
+    prcp: [chirps3]
+    tmean: [era5land]
+  s2sdb_params:
+    model: "kma"
+    variables:
+      prcp:
+        parameter: "tp"
+        units_in: "m"
+        units_out: "mm"
+        aggregation: total
+      tmean:
+        parameter: "2t"
+        units_in: "K"
+        units_out: "degree_Celsius"
+        aggregation: mean
+    available_leads: [week1, week2, week3, week4, week34]
+    init_frequency: "twice_weekly"
+
+s2sdb_hmcr:
+  label: "S2S HMCR (S2S Database)"
+  short_label: "hmcr"
+  provider: s2sdb
+  timescales: [intraseasonal]
+  file_type: forecast
+  variables: [prcp, tmean]
+  clim_years: [1985, 2010]   # fixed reforecast set
+  available_years: [1985, ":"]
+  valid_pairs:
+    prcp: [chirps3]
+    tmean: [era5land]
+  s2sdb_params:
+    model: "hmcr"
+    variables:
+      prcp:
+        parameter: "tp"
+        units_in: "m"
+        units_out: "mm"
+        aggregation: total
+      tmean:
+        parameter: "2t"
+        units_in: "K"
+        units_out: "degree_Celsius"
+        aggregation: mean
+    available_leads: [week1, week2, week3, week4, week34]
+    init_frequency: "twice_weekly"
+
+
+# ╔═══════════════════════════════════════════════════════════════════════════╗
+# ║  SUB-SEASONAL FORECASTS — SubC (Subseasonal Consortium)                ║
+# ╚═══════════════════════════════════════════════════════════════════════════╝
+
+subc_emean:
+  label: "SubC Multi-Model Ensemble Mean"
+  short_label: "subc_emean"
+  provider: subc
+  timescales: [intraseasonal]
+  file_type: forecast
+  variables: [prcp, tmean]
+  clim_years: [1999, 2016]
+  available_years: [1999, ":"]
+  valid_pairs:
+    prcp: [chirps3]
+    tmean: [era5land]
+  subc_params:
+    estat: "emean"
+    base_url: "http://weather.ou.edu/~kpegion/subc/forecasts/data"
+    access_method: "http"
+    variables:
+      prcp:
+        nc_var: "tp"
+        units_in: "m"
+        units_out: "mm"
+        aggregation: total
+      tmean:
+        nc_var: "t2m"
+        units_in: "K"
+        units_out: "degree_Celsius"
+        aggregation: mean
+    available_leads: [week1, week2, week3, week4, week34]
+    init_frequency: "weekly"
+
+subc_emax:
+  label: "SubC Multi-Model Ensemble Maximum"
+  short_label: "subc_emax"
+  provider: subc
+  timescales: [intraseasonal]
+  file_type: forecast
+  variables: [prcp, tmean]
+  clim_years: [1999, 2016]
+  available_years: [1999, ":"]
+  valid_pairs:
+    prcp: [chirps3]
+    tmean: [era5land]
+  subc_params:
+    estat: "emax"
+    base_url: "http://weather.ou.edu/~kpegion/subc/forecasts/data"
+    access_method: "http"
+    variables:
+      prcp:
+        nc_var: "tp"
+        units_in: "m"
+        units_out: "mm"
+        aggregation: total
+      tmean:
+        nc_var: "t2m"
+        units_in: "K"
+        units_out: "degree_Celsius"
+        aggregation: mean
+    available_leads: [week1, week2, week3, week4, week34]
+    init_frequency: "weekly"
+
+subc_emin:
+  label: "SubC Multi-Model Ensemble Minimum"
+  short_label: "subc_emin"
+  provider: subc
+  timescales: [intraseasonal]
+  file_type: forecast
+  variables: [prcp, tmean]
+  clim_years: [1999, 2016]
+  available_years: [1999, ":"]
+  valid_pairs:
+    prcp: [chirps3]
+    tmean: [era5land]
+  subc_params:
+    estat: "emin"
+    base_url: "http://weather.ou.edu/~kpegion/subc/forecasts/data"
+    access_method: "http"
+    variables:
+      prcp:
+        nc_var: "tp"
+        units_in: "m"
+        units_out: "mm"
+        aggregation: total
+      tmean:
+        nc_var: "t2m"
+        units_in: "K"
+        units_out: "degree_Celsius"
+        aggregation: mean
+    available_leads: [week1, week2, week3, week4, week34]
+    init_frequency: "weekly"
+
+
+# ╔═══════════════════════════════════════════════════════════════════════════╗
+# ║  OBSERVATIONS                                                           ║
+# ╚═══════════════════════════════════════════════════════════════════════════╝
+
+chirps3:
+  label: "CHIRPS v3 (CHC)"
+  short_label: "CHIRPSv3"
+  provider: http
+  timescales: [seasonal, intraseasonal]
+  file_type: obs
+  variables: [prcp, rfreq]
+  clim_years: [1991, 2020]   # WMO standard; override with --clim
+  http_params:
+    monthly_url: "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/netcdf/by_year/"
+    daily_url: "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/daily/final/rnl/netcdf/byMonth/"
+    file_pattern_monthly: "chirps-v3.0.{YYYY}.monthly.nc"
+    file_pattern_daily: "chirps-v3.0.{YYYY}.{MM}.days_p05.nc"
+    variables:
+      prcp:
+        nc_var: "precip"
+        units_in: "mm/day"    # daily files; monthly files already in mm/month
+        units_out: "mm"
+        aggregation: total
+        fill_value_threshold: 0   # values < 0 are missing
+      rfreq:
+        # Rainfall frequency = number of wet days (precip > 1 mm/day) per season.
+        # Derived from CHIRPS daily files (chirps-v3.0.YYYY.MM.days_p05.nc),
+        # variable "precip", threshold 1.0 mm/day.
+        nc_var: "precip"
+        units_in: "mm/day"
+        units_out: "days"
+        aggregation: rfreq
+        wet_day_threshold: 1.0    # mm/day; standard CPT threshold
+        fill_value_threshold: 0
+
+cru409:
+  label: "CRU TS4.09 (University of East Anglia)"
+  short_label: "CRUv409"
+  provider: http
+  timescales: [seasonal]
+  file_type: obs
+  variables: [prcp, tmean]
+  clim_years: [1991, 2020]
+  http_params:
+    base_url: "https://crudata.uea.ac.uk/cru/data/hrg/cru_ts_4.09/cruts.2503051245.v4.09/"
+    variables:
+      prcp:
+        filename: "pre/cru_ts4.09.1901.2024.pre.dat.nc.gz"
+        nc_var: "pre"
+        units_in: "mm/month"
+        units_out: "mm"
+        aggregation: total
+      tmean:
+        filename: "tmp/cru_ts4.09.1901.2024.tmp.dat.nc.gz"
+        nc_var: "tmp"
+        units_in: "degree_Celsius"
+        units_out: "degree_Celsius"
+        aggregation: mean
+      rfreq:
+        # Rainfall frequency = number of wet days per month/season.
+        # CRU TS4.09 'wet' variable: mean number of wet-days per month
+        # (days with precip > 1.0 mm). Seasonal aggregation = sum of monthly means.
+        filename: "wet/cru_ts4.09.1901.2024.wet.dat.nc.gz"
+        nc_var: "wet"
+        units_in: "days"
+        units_out: "days"
+        aggregation: total
+      tmax:
+        filename: "tmx/cru_ts4.09.1901.2024.tmx.dat.nc.gz"
+        nc_var: "tmx"
+        units_in: "degree_Celsius"
+        units_out: "degree_Celsius"
+        aggregation: mean
+      tmin:
+        filename: "tmn/cru_ts4.09.1901.2024.tmn.dat.nc.gz"
+        nc_var: "tmn"
+        units_in: "degree_Celsius"
+        units_out: "degree_Celsius"
+        aggregation: mean
+
+ersst5:
+  label: "NOAA ERSST v5"
+  short_label: "ERSSTv5"
+  provider: http
+  timescales: [seasonal]
+  file_type: obs
+  variables: [sst]
+  clim_years: [1991, 2020]
+  http_params:
+    base_url: "https://downloads.psl.noaa.gov/Datasets/noaa.ersst.v5/"
+    file_pattern: "sst.mnmean.nc"   # single multi-year file
+    variables:
+      sst:
+        nc_var: "sst"
+        units_in: "degree_Celsius"
+        units_out: "degree_Celsius"
+        aggregation: mean
+        fill_value: -9.96921e+36
+
+
+# ╔═══════════════════════════════════════════════════════════════════════════╗
+# ║  REANALYSIS                                                             ║
+# ╚═══════════════════════════════════════════════════════════════════════════╝
+
+era5land:
+  label: "ERA5-Land (CDS)"
+  short_label: "era5land"
+  provider: cds
+  timescales: [seasonal, intraseasonal]
+  file_type: reanalysis
+  variables: [tmean]
+  clim_years: [1991, 2020]
+  http_params: {}   # not used; era5land fetched via cdsapi
+  cds_params:
+    dataset: "reanalysis-era5-land-monthly-means"
+    dataset_daily: "reanalysis-era5-land"
+    variables:
+      tmean:
+        cds_name: "2m_temperature"
+        nc_var: "t2m"
+        units_in: "K"
+        units_out: "degree_Celsius"
+        aggregation: mean
+    product_type: "monthly_averaged_reanalysis"
+
+
+# ╔═══════════════════════════════════════════════════════════════════════════╗
+# ║  INDICES                                                                ║
+# ╚═══════════════════════════════════════════════════════════════════════════╝
+
+roni:
+  label: "RONI – Relative ENSO Index (NOAA CPC)"
+  short_label: "roni"
+  provider: http
+  timescales: [seasonal]
+  file_type: index
+  variables: [enso_index]
+  clim_years: [1991, 2020]   # WMO standard period for filename labelling
+  http_params:
+    url: "https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/enso/roni/"
+    # Actual data file URL TBD; CPC page structure needs verification at runtime
+    data_url: "https://www.cpc.ncep.noaa.gov/data/indices/RONI.ascii.txt"
+    variables:
+      enso_index:
+        units_in: "dimensionless"
+        units_out: "dimensionless"
+        aggregation: mean
+
+
+# ╔═══════════════════════════════════════════════════════════════════════════╗
+# ║  VALID PAIRING MATRIX  (reference; auto-derived from valid_pairs above) ║
+# ╚═══════════════════════════════════════════════════════════════════════════╝
+# seasonal:
+#   prcp forecasts: cds_ecmwf_seasonal, cds_ncep_seasonal, cds_eccc_seasonal,
+#                   nmme_cfsv2, nmme_cansipsv2, + all other CDS/NMME models
+#   prcp obs:       chirps3, cru409
+#   temp forecasts: cds_ecmwf_seasonal, cds_ncep_seasonal, cds_eccc_seasonal,
+#                   nmme_cfsv2 (tmean only), nmme_cansipsv2 (tmean only), + others
+#   temp rean:      era5land, cru409
+#   sst:            ersst5 (paired with any seasonal predictand)
+#   enso:           roni   (paired with any seasonal predictand)
+#
+# intraseasonal:
+#   prcp forecasts: s2sdb_ecmwf, s2sdb_ncep, subc_emean, subc_emax, subc_emin
+#   prcp obs:       chirps3
+#   temp forecasts: s2sdb_ecmwf, s2sdb_ncep, subc_emean, subc_emax, subc_emin
+#   temp rean:      era5land
