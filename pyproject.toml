@@ -1,0 +1,67 @@
+# =============================================================================
+# pyproject.toml — Project metadata and build configuration (PEP 517/518).
+# -----------------------------------------------------------------------------
+# Copyright (C) 2026 Alisios Corporation — https://alisioscorporation.com
+# Author       : Alisios Corporation
+# Project lead : Ángel G. Muñoz (Alisios) — angel.g.munoz@alisioscorporation.com
+# SEI lead     : Simon J. Mason — simon.mason@sei.org
+# UKMO lead    : Nicholas Savage — nicholas.savage@metoffice.gov.uk
+# Funding      : WISER Programme, UK International Development, Met Office UK
+# Repository   : https://github.com/alisioscorp/cptdm
+# Contract     : SEI/25-173
+#
+# Licensed under the Alisios Open Non-Commercial License (AONCL) v1.0.
+# Free for non-commercial research, education, and public-sector use.
+# Commercial use requires prior written authorisation from Alisios Corporation
+# and SEI per contract SEI/25-173. Unauthorised commercial use will be subject
+# to legal action. See LICENSE for full terms.
+# Attribution to Alisios Corporation must be preserved in all copies,
+# modifications, forks, or derivative works (contract SEI/25-173).
+# =============================================================================
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cptdm"
+version = "1.0.3"
+description = "CPT Data Acquisition and Download Module – download and convert climate datasets to CPT-compatible files"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "Proprietary – Alisios Corporation" }
+authors = [{ name = "Ángel G. Muñoz", email = "angel.g.munoz@alisioscorporation.com" }]
+
+dependencies = [
+    "cdsapi>=0.7",
+    "xarray>=2022.6",
+    "numpy>=1.22",
+    "pandas>=1.4",
+    "netCDF4>=1.6",
+    "cfgrib>=0.9",
+    "pydantic>=2.0",
+    "pyyaml>=6.0",
+    "requests>=2.28",
+    "aiohttp>=3.8",
+    "rich>=12",
+    "click>=8.0",
+]
+
+[project.optional-dependencies]
+s2s = [
+    "ecmwf-api-client>=1.6",
+    "ecmwf-opendata>=0.3",
+]
+dev = [
+    "pytest>=7",
+    "pytest-cov",
+    "ruff",
+]
+
+[project.scripts]
+cptdm = "cptdm.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+cptdm = ["data/datasets.yml"]

@@ -1,0 +1,48 @@
+# =============================================================================
+# CPT-DM .gitignore — keep build/release infrastructure out of the repo
+# =============================================================================
+
+# Build infrastructure (stays in TGZ, not in GitHub repo)
+build_binary.sh
+release.sh
+upload_release.sh
+install.sh
+cptdm_run.py
+setup.py
+BUILDING.md
+README.build_and_release.md
+docker/
+.github/
+
+# Build artefacts
+dist/
+build/
+*.build/
+*.onefile-build/
+*.egg-info/
+__pycache__/
+*.pyc
+
+# Nuitka output
+cptdm.bin
+cptdm-macos-*
+cptdm-linux-*
+cptdm-windows-*
+*.sha256
+
+# Secrets and credentials
+.env
+.ghtoken
+.cdsapirc
+.ecmwfapirc
+.ecdsapirc
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Cache and output
+CPTFiles/
+nohup.out
+nohup_*.out
+*.log
