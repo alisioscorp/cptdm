@@ -3,15 +3,17 @@ Alisios Open Non-Commercial License (AONCL) v1.0
 Copyright (C) 2026 Alisios Corporation
 https://alisioscorporation.com
 
-Project Lead  : Angel G. Munoz - angel.g.munoz@alisioscorporation.com
-SEI Lead      : Simon J. Mason - simon.mason@sei.org
-UKMO Lead     : Nicholas Savage - nicholas.savage@metoffice.gov.uk
+Project Lead  : Ángel G. Muñoz — angel.g.munoz@alisioscorporation.com
+SEI Lead      : Simon J. Mason — simon.mason@sei.org
+UKMO Lead     : Nicholas Savage — nicholas.savage@metoffice.gov.uk
 Repository    : https://github.com/alisioscorp/cptdm
 Contract      : SEI/25-173
 
 Part-funded by the Weather and Climate Information Services (WISER) Programme,
 funded with UK International Development from the UK government and led by the
 Met Office in the UK.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 PREAMBLE
 
@@ -21,7 +23,9 @@ research, education, and public-sector use in support of climate adaptation
 and resilience. Alisios Corporation does not seek to profit from this work;
 our purpose is to support society in managing climate risks.
 
-1. GRANT OF RIGHTS - NON-COMMERCIAL USE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. GRANT OF RIGHTS — NON-COMMERCIAL USE
 
 Permission is hereby granted, free of charge, to any person or organisation
 obtaining a copy of this software and associated documentation files (the
@@ -30,37 +34,37 @@ for NON-COMMERCIAL purposes only, subject to the conditions below.
 
 "Non-commercial" means not primarily intended for or directed toward commercial
 advantage or monetary compensation. This includes, without limitation:
-  - Academic and scientific research
-  - Education and training
-  - Public-sector and governmental applications
-  - Humanitarian and development aid
-  - Non-profit climate services
+  — Academic and scientific research
+  — Education and training
+  — Public-sector and governmental applications
+  — Humanitarian and development aid
+  — Non-profit climate services
 
-2. COMMERCIAL USE - AUTHORISATION REQUIRED
+2. COMMERCIAL USE — AUTHORISATION REQUIRED
 
 Any commercial use of the Software requires prior written authorisation from
 Alisios Corporation and the Stockholm Environment Institute (SEI), as
 stipulated in contract SEI/25-173. Commercial use includes, without limitation:
-  - Use within a commercial product or service
-  - Use by a for-profit entity for internal business operations
-  - Use in any activity intended to generate revenue or commercial advantage
-  - Incorporation into proprietary software distributed to customers
+  — Use within a commercial product or service
+  — Use by a for-profit entity for internal business operations
+  — Use in any activity intended to generate revenue or commercial advantage
+  — Incorporation into proprietary software distributed to customers
 
 To request a commercial licence, contact:
-  Angel G. Munoz - angel.g.munoz@alisioscorporation.com
-  Alisios Corporation - https://alisioscorporation.com
+  Ángel G. Muñoz — angel.g.munoz@alisioscorporation.com
+  Alisios Corporation — https://alisioscorporation.com
 
 Unauthorised commercial use constitutes a breach of this licence and of
 contract SEI/25-173, and will be subject to legal action under applicable
 intellectual property and contract law.
 
-3. ATTRIBUTION - MANDATORY IN ALL CASES
+3. ATTRIBUTION — MANDATORY IN ALL CASES
 
 The following attribution must be preserved in all copies, substantial
 portions, modifications, forks, or derivative works of the Software, whether
 distributed in source or binary form:
 
-  "CPT-DM - Copyright (C) 2026 Alisios Corporation (https://alisioscorporation.com).
+  "CPT-DM — Copyright (C) 2026 Alisios Corporation (https://alisioscorporation.com).
    Developed under contract SEI/25-173. Part-funded by the WISER Programme,
    UK International Development, led by the Met Office in the UK."
 
@@ -94,5 +98,7 @@ USE OR OTHER DEALINGS IN THE SOFTWARE.
 This licence shall be governed by and construed in accordance with the laws
 of Spain. Any disputes arising under this licence shall be subject to the
 exclusive jurisdiction of the courts of Granada, Spain.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 END OF LICENSE
