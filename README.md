@@ -563,6 +563,6 @@ cptdm --timescale intraseasonal --dataset subc_emean \
 
 ## Licence
 
-Proprietary — Alisios Corporation. Developed under contract SEI/25-173 with the Stockholm Environment Institute. This software has been part-funded by the Weather and Climate Information Services (WISER) Programme, which is funded with UK International Development from the UK government and led by the Met Office in the UK. Redistribution outside the project team requires written authorisation from Alisios Corporation.
+Licensed under the Alisios Open Non-Commercial Licence (AONCL) v1.0. Developed under contract SEI/25-173 with the Stockholm Environment Institute. Part-funded by the Weather and Climate Information Services (WISER) Programme, funded with UK International Development from the UK government and led by the Met Office in the UK. See LICENSE for full terms.
 
 **Powered by Alisios Corporation** — https://alisioscorporation.com
