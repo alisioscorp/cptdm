@@ -20,7 +20,7 @@ modifications, forks, or derivative works (contract SEI/25-173).
 -->
 # CPT-DM — Climate Predictability Tool, Data Acquisition and Download Module
 
-**Version:** 1.0.4  
+**Version:** 1.0.5  
 **Produced by:** Alisios Corporation (https://alisioscorporation.com)  
 **Project lead:** Ángel G. Muñoz — angel.g.munoz@alisioscorporation.com  
 **SEI lead:** Simon J. Mason — simon.mason@sei.org  
@@ -563,6 +563,6 @@ cptdm --timescale intraseasonal --dataset subc_emean \
 
 ## Licence
 
-Licensed under the Alisios Open Non-Commercial Licence (AONCL) v1.0. Developed under contract SEI/25-173 with the Stockholm Environment Institute. Part-funded by the Weather and Climate Information Services (WISER) Programme, funded with UK International Development from the UK government and led by the Met Office in the UK. See LICENSE for full terms.
+Proprietary — Alisios Corporation. Developed under contract SEI/25-173 with the Stockholm Environment Institute. This software has been part-funded by the Weather and Climate Information Services (WISER) Programme, which is funded with UK International Development from the UK government and led by the Met Office in the UK. Commercial use requires written authorisation from Alisios Corporation and SEI (see LICENSE).
 
 **Powered by Alisios Corporation** — https://alisioscorporation.com

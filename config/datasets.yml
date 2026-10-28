@@ -528,7 +528,7 @@ nmme_cfsv2:
     prcp: [chirps3, cru409]
     rfreq: [chirps3, cru409]
     tmean: [era5land, cru409]
-    sst: [ersst5]
+    sst: [ersst5, ersst6]
   http_params:
     base_url: "https://ftp.cpc.ncep.noaa.gov/NMME"
     hindcast_path: "/clim/{model}/{variable}/"
@@ -556,13 +556,6 @@ nmme_cfsv2:
         units_out: "degree_Celsius"
         aggregation: mean
         has_daily: false
-      sst:
-        nc_var: "sst"
-        ftp_var: "tmpsfc"
-        units_in: "K"
-        units_out: "degree_Celsius"
-        aggregation: mean
-        has_daily: false
 
 nmme_cansipsv2:
   label: "NMME CanSIPSv2 (NOAA FTP)"
@@ -577,7 +570,7 @@ nmme_cansipsv2:
     prcp: [chirps3, cru409]
     rfreq: [chirps3, cru409]
     tmean: [era5land, cru409]
-    sst: [ersst5]
+    sst: [ersst5, ersst6]
   http_params:
     base_url: "https://ftp.cpc.ncep.noaa.gov/NMME"
     hindcast_path: "/clim/{model}/{variable}/"
@@ -594,13 +587,6 @@ nmme_cansipsv2:
         has_daily: false
       tmean:
         nc_var: "tref"
-        units_in: "K"
-        units_out: "degree_Celsius"
-        aggregation: mean
-        has_daily: false
-      sst:
-        nc_var: "sst"
-        ftp_var: "tmpsfc"
         units_in: "K"
         units_out: "degree_Celsius"
         aggregation: mean
@@ -632,7 +618,7 @@ nmme_gem52_nemo:
     prcp: [chirps3, cru409]
     rfreq: [chirps3, cru409]
     tmean: [era5land, cru409]
-    sst: [ersst5]
+    sst: [ersst5, ersst6]
   http_params:
     base_url: "https://ftp.cpc.ncep.noaa.gov/NMME"
     hindcast_path: "/clim/{model}/{variable}/"
@@ -660,13 +646,6 @@ nmme_gem52_nemo:
         units_out: "degree_Celsius"
         aggregation: mean
         has_daily: false
-      sst:
-        nc_var: "sst"
-        ftp_var: "tmpsfc"
-        units_in: "K"
-        units_out: "degree_Celsius"
-        aggregation: mean
-        has_daily: false
 
 nmme_gfdl_spear:
   label: "NMME GFDL-SPEAR (NOAA FTP)"
@@ -681,7 +660,7 @@ nmme_gfdl_spear:
     prcp: [chirps3, cru409]
     rfreq: [chirps3, cru409]
     tmean: [era5land, cru409]
-    sst: [ersst5]
+    sst: [ersst5, ersst6]
   http_params:
     base_url: "https://ftp.cpc.ncep.noaa.gov/NMME"
     hindcast_path: "/clim/{model}/{variable}/"
@@ -709,13 +688,6 @@ nmme_gfdl_spear:
         units_out: "degree_Celsius"
         aggregation: mean
         has_daily: false
-      sst:
-        nc_var: "sst"
-        ftp_var: "tmpsfc"
-        units_in: "K"
-        units_out: "degree_Celsius"
-        aggregation: mean
-        has_daily: false
 
 nmme_nasa_geoss2s:
   label: "NMME NASA-GEOSS2S (NOAA FTP)"
@@ -730,7 +702,7 @@ nmme_nasa_geoss2s:
     prcp: [chirps3, cru409]
     rfreq: [chirps3, cru409]
     tmean: [era5land, cru409]
-    sst: [ersst5]
+    sst: [ersst5, ersst6]
   http_params:
     base_url: "https://ftp.cpc.ncep.noaa.gov/NMME"
     hindcast_path: "/clim/{model}/{variable}/"
@@ -758,13 +730,6 @@ nmme_nasa_geoss2s:
         units_out: "degree_Celsius"
         aggregation: mean
         has_daily: false
-      sst:
-        nc_var: "sst"
-        ftp_var: "tmpsfc"
-        units_in: "K"
-        units_out: "degree_Celsius"
-        aggregation: mean
-        has_daily: false
 
 nmme_ncar_cesm1:
   label: "NMME NCAR-CESM1 (NOAA FTP)"
@@ -779,7 +744,7 @@ nmme_ncar_cesm1:
     prcp: [chirps3, cru409]
     rfreq: [chirps3, cru409]
     tmean: [era5land, cru409]
-    sst: [ersst5]
+    sst: [ersst5, ersst6]
   http_params:
     base_url: "https://ftp.cpc.ncep.noaa.gov/NMME"
     hindcast_path: "/clim/{model}/{variable}/"
@@ -807,13 +772,6 @@ nmme_ncar_cesm1:
         units_out: "degree_Celsius"
         aggregation: mean
         has_daily: false
-      sst:
-        nc_var: "sst"
-        ftp_var: "tmpsfc"
-        units_in: "K"
-        units_out: "degree_Celsius"
-        aggregation: mean
-        has_daily: false
 
 nmme_gem_nemo:
   label: "NMME GEM-NEMO (NOAA FTP)"
@@ -828,7 +786,7 @@ nmme_gem_nemo:
     prcp: [chirps3, cru409]
     rfreq: [chirps3, cru409]
     tmean: [era5land, cru409]
-    sst: [ersst5]
+    sst: [ersst5, ersst6]
   http_params:
     base_url: "https://ftp.cpc.ncep.noaa.gov/NMME"
     hindcast_path: "/clim/{model}/{variable}/"
@@ -845,13 +803,6 @@ nmme_gem_nemo:
         has_daily: false
       tmean:
         nc_var: "tref"
-        units_in: "K"
-        units_out: "degree_Celsius"
-        aggregation: mean
-        has_daily: false
-      sst:
-        nc_var: "sst"
-        ftp_var: "tmpsfc"
         units_in: "K"
         units_out: "degree_Celsius"
         aggregation: mean
@@ -1321,6 +1272,7 @@ chirps3:
   file_type: obs
   variables: [prcp, rfreq]
   clim_years: [1991, 2020]   # WMO standard; override with --clim
+  available_years: [1981, ":"]
   http_params:
     monthly_url: "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/monthly/global/netcdf/by_year/"
     daily_url: "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/daily/final/rnl/netcdf/byMonth/"
@@ -1352,6 +1304,7 @@ cru409:
   file_type: obs
   variables: [prcp, tmean]
   clim_years: [1991, 2020]
+  available_years: [1901, 2024]
   http_params:
     base_url: "https://crudata.uea.ac.uk/cru/data/hrg/cru_ts_4.09/cruts.2503051245.v4.09/"
     variables:
@@ -1397,8 +1350,29 @@ ersst5:
   file_type: obs
   variables: [sst]
   clim_years: [1991, 2020]
+  available_years: [1854, ":"]
   http_params:
     base_url: "https://downloads.psl.noaa.gov/Datasets/noaa.ersst.v5/"
+    file_pattern: "sst.mnmean.nc"   # single multi-year file
+    variables:
+      sst:
+        nc_var: "sst"
+        units_in: "degree_Celsius"
+        units_out: "degree_Celsius"
+        aggregation: mean
+        fill_value: -9.96921e+36
+
+ersst6:
+  label: "NOAA ERSST v6"
+  short_label: "ERSSTv6"
+  provider: http
+  timescales: [seasonal]
+  file_type: obs
+  variables: [sst]
+  clim_years: [1991, 2020]
+  available_years: [1850, ":"]
+  http_params:
+    base_url: "https://downloads.psl.noaa.gov/Datasets/noaa.ersst.v6/"
     file_pattern: "sst.mnmean.nc"   # single multi-year file
     variables:
       sst:
@@ -1421,6 +1395,7 @@ era5land:
   file_type: reanalysis
   variables: [tmean]
   clim_years: [1991, 2020]
+  available_years: [1950, ":"]
   http_params: {}   # not used; era5land fetched via cdsapi
   cds_params:
     dataset: "reanalysis-era5-land-monthly-means"
@@ -1447,6 +1422,7 @@ roni:
   file_type: index
   variables: [enso_index]
   clim_years: [1991, 2020]   # WMO standard period for filename labelling
+  available_years: [1950, ":"]
   http_params:
     url: "https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/enso/roni/"
     # Actual data file URL TBD; CPC page structure needs verification at runtime

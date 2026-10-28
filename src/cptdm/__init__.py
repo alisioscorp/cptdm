@@ -21,7 +21,7 @@
 # cptdm – CPT Data Acquisition and Download Module
 # Copyright Alisios Corporation. All rights reserved.
 
-__version__ = "1.0.4"
+__version__ = "1.0.5"
 __author__ = "Ángel G. Muñoz"
 
 # ---------------------------------------------------------------------------

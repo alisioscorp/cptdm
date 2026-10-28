@@ -149,7 +149,10 @@ class Orchestrator:
         # Use available_years bounds (open-ended, gap-aware) if set;
         # fall back to clim_years for the warning comparison.
         avail_bounds = entry.get_available_bounds()
-        available = avail_bounds or (tuple(entry.clim_years) if entry.clim_years else None)
+        # v1.0.5: obs/reanalysis/index runs are not compared with clim_years.
+        available = avail_bounds or (tuple(entry.clim_years)
+                                     if entry.clim_years and entry.file_type == "forecast"
+                                     else None)
         if request.clim_start and request.clim_end:
             used = (request.clim_start, request.clim_end)
             if available:

@@ -865,8 +865,10 @@ def main(
 
             clim_start, clim_end = used_start, used_end
         else:
-            # No available_years constraint — also check legacy clim_years
-            if registry_clim:
+            # No available_years constraint — also check legacy clim_years.
+            # v1.0.5: obs, reanalysis and index records are not capped to
+            # their default climatology (clim_years); only forecasts are.
+            if registry_clim and entry.file_type not in ("obs", "reanalysis", "index"):
                 avail_start, avail_end = registry_clim
                 used_start = max(req_start, avail_start)
                 used_end = min(req_end, avail_end)
