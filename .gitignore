@@ -46,3 +46,6 @@ CPTFiles/
 nohup.out
 nohup_*.out
 *.log
+
+# Internal release tooling (not pushed to GitHub)
+release_protected.sh
